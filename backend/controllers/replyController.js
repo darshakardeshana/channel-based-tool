@@ -90,56 +90,29 @@ module.exports = {
         where: { questionId },
         order: [['createdAt', 'ASC']]
       });
-  
-      // Build an array of reply IDs from the fetched replies
-      const replyIds = replies.map(reply => reply.id);
-  
-      // Fetch all reactions associated with these replies
-      const reactions = await Reaction.findAll({
-        where: { replyId: replyIds }
-      });
-  
-      // Create a mapping of replyId to aggregated reaction counts
-      const reactionCounts = {};
-      reactions.forEach(reaction => {
-        const replyId = reaction.replyId;
-        if (!reactionCounts[replyId]) {
-          reactionCounts[replyId] = { upVotes: 0, downVotes: 0 };
-        }
-        if (reaction.reactionType === 'thumbs_up') {
-          reactionCounts[replyId].upVotes += 1;
-        } else if (reaction.reactionType === 'thumbs_down') {
-          reactionCounts[replyId].downVotes += 1;
-        }
-      });
-  
-      // Build a map of replies keyed by their id, converting them to plain objects,
-      // and attach reaction counts along with an empty childReplies array.
+
+      // Build a map of replies keyed by their id, adding a "childReplies" array to each
       const replyMap = {};
       replies.forEach(reply => {
-        const replyData = reply.toJSON();
-        const counts = reactionCounts[replyData.id] || { upVotes: 0, downVotes: 0 };
-        replyData.upVotes = counts.upVotes;
-        replyData.downVotes = counts.downVotes;
-        replyData.childReplies = [];
-        replyMap[reply.id] = replyData;
+        replyMap[reply.id] = reply.toJSON();
+        replyMap[reply.id].childReplies = [];
       });
-  
-      // Build the nested reply tree
+
+      // Build the nested tree
       const nestedReplies = [];
       replies.forEach(reply => {
         const replyData = replyMap[reply.id];
         if (reply.parentReplyId) {
-          // If there's a parent, add this reply to its parent's childReplies array
+          // If there is a parent, add this reply to the parent's childReplies array
           if (replyMap[reply.parentReplyId]) {
             replyMap[reply.parentReplyId].childReplies.push(replyData);
           }
         } else {
-          // No parentReplyId indicates a root-level reply
+          // No parentReplyId means it's a root reply
           nestedReplies.push(replyData);
         }
       });
-  
+
       res.status(200).json(nestedReplies);
     } catch (error) {
       res.status(500).json({ error: error.message });

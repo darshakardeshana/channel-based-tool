@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
@@ -5,8 +6,10 @@ import questionService from '../services/questionService';
 import replyService from '../services/replyService';
 import ReplyComponent from '../components/ReplyComponent';
 import CreateReplyModal from '../components/CreateReplyModal';
+import { AuthContext } from '../context/AuthContext';
 
 const QuestionDetailPage = () => {
+  const { user } = useContext(AuthContext);
   const { questionId } = useParams();
   const [question, setQuestion] = useState(null);
   const [nestedReplies, setNestedReplies] = useState([]);
@@ -31,8 +34,10 @@ const QuestionDetailPage = () => {
 
   const handleReplyCreate = async (replyData) => {
     try {
-      // Create the reply via API call
-      const newReply = await replyService.createReply(replyData);
+      console.log('User data:', user);
+      const replyWithUserId = {...replyData, userId: user.id };
+      console.log(replyWithUserId);
+      const newReply = await replyService.createReply(replyWithUserId);
       // Re-fetch nested replies (or you could optimistically update state)
       const updatedReplies = await replyService.getNestedRepliesByQuestion(questionId);
       setNestedReplies(updatedReplies);
