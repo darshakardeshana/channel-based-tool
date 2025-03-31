@@ -13,10 +13,7 @@ const userRoutes = require('./routes/users');
 const app = express();
 app.use(express.json());
 
-app.use(cors({
-  origin: 'http://localhost:3000', // Allow only requests from this origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-}));
+app.use(cors());
 
 sequelize.authenticate()
   .then(() => console.log('Database connected...'))
