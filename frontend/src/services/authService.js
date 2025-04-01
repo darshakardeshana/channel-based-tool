@@ -24,6 +24,7 @@ const authService = {
     return response.data;
   },
   register: async (userData) => {
+    console.log('userData in authService file', userData);
     const response = await api.post('/auth/register', userData);
     return response.data;
   },

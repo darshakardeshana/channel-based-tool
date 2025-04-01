@@ -1,72 +1,67 @@
-// src/pages/ChannelDetailPage.js
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import channelService from '../services/channelService';
+import { Container, Button, Row, Col, Card } from 'react-bootstrap';
 import questionService from '../services/questionService';
+import CreateQuestionModal from '../components/CreateQuestionModal';
 import QuestionCard from '../components/QuestionCard';
+import { AuthContext } from '../context/AuthContext';
 
 const ChannelDetailPage = () => {
-  const { channelId } = useParams(); // Gets the channel ID from the URL
-  const [channel, setChannel] = useState(null);
+  const { channelId } = useParams();
   const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchQuestions = async () => {
       try {
-        // Fetch channel details
-        const channelData = await channelService.getChannelById(channelId);
-        setChannel(channelData);
-        
-        // Fetch questions for this channel
-        const channelQuestions = await questionService.getQuestionsByChannel(channelId);
-        setQuestions(channelQuestions);
+        const fetchedQuestions = await questionService.getQuestionsByChannel(channelId);
+        setQuestions(fetchedQuestions);
       } catch (error) {
-        console.error('Error fetching channel data:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching questions:', error);
       }
-    }
-    fetchData();
+    };
+    fetchQuestions();
   }, [channelId]);
 
-  if (loading) {
-    return (
-      <Container className="my-5">
-        <p>Loading channel details...</p>
-      </Container>
-    );
-  }
+  const handleCreateQuestion = async (questionData) => {
+    try {
+      const formData = new FormData();
+      formData.append('content', questionData.content);
+      if (questionData.screenshot) {
+        formData.append('screenshot', questionData.screenshot);
+      }
+      formData.append('userId', user.id); // Add userId to formData
+      formData.append('channelId', channelId); // Add channelId to formData
+      
+      await questionService.createQuestion(formData);
+      const updatedQuestions = await questionService.getQuestionsByChannel(channelId);
 
-  if (!channel) {
-    return (
-      <Container className="my-5">
-        <p>Channel not found.</p>
-      </Container>
-    );
-  }
+      setQuestions(updatedQuestions);
+      setShowQuestionModal(false);
+    } catch (error) {
+      console.error('Error creating question:', error);
+    }
+  };
+
 
   return (
     <Container className="my-5">
       <Card className="mb-4">
         <Card.Body>
-          <Card.Title>{channel.name}</Card.Title>
-          <Card.Text>{channel.description}</Card.Text>
+          <Card.Title>Channel Details</Card.Title>
+          <Card.Text>Channel ID: {channelId}</Card.Text>
         </Card.Body>
       </Card>
-      <h3>Questions in this channel</h3>
+      <Button variant="primary" onClick={() => setShowQuestionModal(true)} className="mb-3">Post a Question</Button>
       <Row>
-        {questions.length ? (
-          questions.map((question) => (
-            <Col key={question.id} md={6} className="mb-3">
-              <QuestionCard question={question} />
-            </Col>
-          ))
-        ) : (
-          <p>No questions have been posted in this channel yet.</p>
-        )}
+        {questions.map((question) => (
+          <Col key={question.id} md={6} className="mb-3">
+            <QuestionCard question={question} />
+          </Col>
+        ))}
       </Row>
+      <CreateQuestionModal show={showQuestionModal} handleClose={() => setShowQuestionModal(false)} handleCreate={handleCreateQuestion} />
     </Container>
   );
 };

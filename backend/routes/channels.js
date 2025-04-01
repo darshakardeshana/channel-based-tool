@@ -18,4 +18,7 @@ router.put('/:id', authMiddleware, channelController.updateChannel);
 // Endpoint to toggle channel active status (activate/deactivate)
 router.patch('/:id/toggle', authMiddleware, channelController.toggleChannelStatus);
 
+//Endpoint to delete a channel.
+router.delete('/:id', authMiddleware, channelController.deleteChannel);
+
 module.exports = router;

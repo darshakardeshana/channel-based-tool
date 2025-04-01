@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Button, Row, Col } from 'react-bootstrap';
+import { Container, Card, Button, Row, Col, Image } from 'react-bootstrap'; // Import Image
 import { useParams } from 'react-router-dom';
 import questionService from '../services/questionService';
 import replyService from '../services/replyService';
@@ -15,6 +15,7 @@ const QuestionDetailPage = () => {
   const [nestedReplies, setNestedReplies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showReplyModal, setShowReplyModal] = useState(false);
+  const [selectedParentReplyId, setSelectedParentReplyId] = useState(null);
 
   useEffect(() => {
     async function fetchQuestionDetails() {
@@ -34,11 +35,8 @@ const QuestionDetailPage = () => {
 
   const handleReplyCreate = async (replyData) => {
     try {
-      console.log('User data:', user);
-      const replyWithUserId = {...replyData, userId: user.id };
-      console.log(replyWithUserId);
+      const replyWithUserId = { ...replyData, userId: user.id, parentReplyId: selectedParentReplyId };
       const newReply = await replyService.createReply(replyWithUserId);
-      // Re-fetch nested replies (or you could optimistically update state)
       const updatedReplies = await replyService.getNestedRepliesByQuestion(questionId);
       setNestedReplies(updatedReplies);
       setShowReplyModal(false);
@@ -71,18 +69,32 @@ const QuestionDetailPage = () => {
           <Card.Subtitle className="mb-2 text-muted">
             {question.author && question.author.displayName} • {new Date(question.createdAt).toLocaleString()}
           </Card.Subtitle>
+          {question.screenshot && (
+            <Image
+              src={question.screenshot}
+              alt="Question Screenshot"
+              fluid // Makes the image responsive
+              className="mb-3" // Adds margin below the image
+            />
+          )}
           <Card.Text>{question.content}</Card.Text>
         </Card.Body>
       </Card>
-      <Button variant="primary" onClick={() => setShowReplyModal(true)} className="mb-4">
-        Post a Reply
-      </Button>
+      {/* Root-level reply button */}
+      <div className="mb-3">
+        <Button variant="primary" onClick={() => { setSelectedParentReplyId(null); setShowReplyModal(true); }}>
+          Post a Reply
+        </Button>
+      </div>
       <h3>Replies</h3>
       {nestedReplies.length ? (
         <Row>
           {nestedReplies.map((reply) => (
             <Col key={reply.id} xs={12}>
-              <ReplyComponent reply={reply} />
+              <ReplyComponent
+                reply={reply}
+                onReply={(parentId) => { setSelectedParentReplyId(parentId); setShowReplyModal(true); }}
+              />
             </Col>
           ))}
         </Row>
@@ -91,9 +103,10 @@ const QuestionDetailPage = () => {
       )}
       <CreateReplyModal
         show={showReplyModal}
-        handleClose={() => setShowReplyModal(false)}
+        handleClose={() => { setShowReplyModal(false); setSelectedParentReplyId(null); }}
         handleCreate={handleReplyCreate}
         questionId={question.id}
+        parentReplyId={selectedParentReplyId}
       />
     </Container>
   );

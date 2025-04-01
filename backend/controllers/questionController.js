@@ -1,19 +1,35 @@
 const Question = require('../models/Question');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: '../frontend/uploads/',
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
 
 module.exports = {
-  // Create a new question
+  // Create a new question (with file upload)
   async createQuestion(req, res) {
-    try {
-      // Retrieve channelId, content, and screenshot from the request body
-      const { channelId, content, screenshot } = req.body;
-      // Use the authenticated user's ID from req.user (set by auth middleware)
-      const userId = req.user.id;
-      // Create the question in the database
-      const question = await Question.create({ channelId, userId, content, screenshot });
-      res.status(201).json(question);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+    upload.single('screenshot')(req, res, async (err) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      try {
+        const { content, userId, channelId } = req.body; 
+        const screenshot = req.file ? `/uploads/${req.file.filename}` : null;
+
+        const question = await Question.create({ channelId, userId, content, screenshot });
+        res.status(201).json(question);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
   },
 
   // Retrieve all questions

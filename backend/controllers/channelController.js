@@ -69,4 +69,19 @@ module.exports = {
       res.status(500).json({ error: error.message });
     }
   },
+  
+  // Delete a channel by its ID
+  async deleteChannel(req, res) {
+    try {
+      const { id } = req.params;
+      const channel = await Channel.findByPk(id);
+      if (!channel) {
+        return res.status(404).json({ error: 'Channel not found' });
+      }
+      await channel.destroy();
+      res.status(204).send(); // 204 No Content for successful deletion
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
 };

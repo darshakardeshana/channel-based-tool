@@ -9,10 +9,14 @@ const questionService = {
     const response = await api.get(`/questions/${questionId}`);
     return response.data;
   },
+  
   createQuestion: async (questionData) => {
-    const response = await api.post('/questions', questionData);
+    const response = await api.post('/questions', questionData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
+
   updateQuestion: async (questionId, questionData) => {
     const response = await api.put(`/questions/${questionId}`, questionData);
     return response.data;

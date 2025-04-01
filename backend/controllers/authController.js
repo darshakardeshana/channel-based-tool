@@ -7,6 +7,7 @@ const saltRounds = 10; // Adjust as needed
 module.exports = {
   // User Registration
   async register(req, res) {
+    console.log('req.body in register function', req.body);
     try {
       const { username, password, displayName } = req.body;
 

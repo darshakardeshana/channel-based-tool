@@ -21,6 +21,10 @@ const channelService = {
     const response = await api.patch(`/channels/${channelId}/toggle`);
     return response.data;
   },
+  deleteChannel: async (channelId) => {
+    const response = await api.delete(`/channels/${channelId}`);
+    return response.data;
+  }
 };
 
 export default channelService;
