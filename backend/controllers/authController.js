@@ -62,4 +62,20 @@ module.exports = {
       return res.status(500).json({ error: error.message });
     }
   },
+  async getCurrentUser(req, res) {
+    try {
+      // Assuming you have middleware that adds user data to req.user after JWT verification
+      const user = await User.findByPk(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userDto = { id: user.id, username: user.username, displayName: user.displayName };
+
+      return res.status(200).json(userDto);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
 };

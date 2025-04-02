@@ -34,6 +34,11 @@ const QuestionDetailPage = () => {
   }, [questionId]);
 
   const handleReplyCreate = async (replyData) => {
+    if (!user) {
+      console.error('User is not authenticated.');
+      return; 
+    }
+
     try {
       const replyWithUserId = { ...replyData, userId: user.id, parentReplyId: selectedParentReplyId };
       await replyService.createReply(replyWithUserId);
@@ -80,8 +85,8 @@ const QuestionDetailPage = () => {
             {question.author && question.author.displayName} • {new Date(question.createdAt).toLocaleString()}
           </Card.Subtitle>
           {question.screenshot && (
-            <img
-              src="../uploads/screenshot-1743610823704.png"
+            <Image
+              src={question.screenshot}
               alt="Question Screenshot"
               fluid
               className="mb-3"

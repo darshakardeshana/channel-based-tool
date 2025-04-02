@@ -1,32 +1,28 @@
-// import axios from 'axios';
-
-// const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// const authService = {
-//   login: async (credentials) => {
-//     const response = await axios.post(`${API_URL}/auth/login`, credentials);
-//     return response.data;
-//   },
-//   register: async (userData) => {
-//     const response = await axios.post(`${API_URL}/auth/register`, userData);
-//     return response.data;
-//   },
-// };
-
-// export default authService;
-
 import api from './api';
 
 const authService = {
   login: async (credentials) => {
     const response = await api.post('/auth/login', credentials);
-    console.log(response?.data);
     return response.data;
   },
   register: async (userData) => {
-    console.log('userData in authService file', userData);
     const response = await api.post('/auth/register', userData);
     return response.data;
+  },
+  getCurrentUser: async (token) => {
+    try {
+      const response = await api.get('/auth/user', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+          return null;
+      }
+      throw error;
+    }
   },
 };
 
