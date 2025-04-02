@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Button, Row, Col, Image } from 'react-bootstrap'; // Import Image
+import { Container, Card, Button, Row, Col, Image } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import questionService from '../services/questionService';
 import replyService from '../services/replyService';
@@ -36,12 +36,22 @@ const QuestionDetailPage = () => {
   const handleReplyCreate = async (replyData) => {
     try {
       const replyWithUserId = { ...replyData, userId: user.id, parentReplyId: selectedParentReplyId };
-      const newReply = await replyService.createReply(replyWithUserId);
+      await replyService.createReply(replyWithUserId);
       const updatedReplies = await replyService.getNestedRepliesByQuestion(questionId);
       setNestedReplies(updatedReplies);
       setShowReplyModal(false);
     } catch (error) {
       console.error('Error posting reply:', error);
+    }
+  };
+
+  const handleDeleteReply = async (replyId) => {
+    try {
+      await replyService.deleteReply(replyId);
+      const updatedReplies = await replyService.getNestedRepliesByQuestion(questionId);
+      setNestedReplies(updatedReplies);
+    } catch (error) {
+      console.error('Error deleting reply:', error);
     }
   };
 
@@ -73,16 +83,21 @@ const QuestionDetailPage = () => {
             <Image
               src={question.screenshot}
               alt="Question Screenshot"
-              fluid // Makes the image responsive
-              className="mb-3" // Adds margin below the image
+              fluid
+              className="mb-3"
             />
           )}
           <Card.Text>{question.content}</Card.Text>
         </Card.Body>
       </Card>
-      {/* Root-level reply button */}
       <div className="mb-3">
-        <Button variant="primary" onClick={() => { setSelectedParentReplyId(null); setShowReplyModal(true); }}>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setSelectedParentReplyId(null);
+            setShowReplyModal(true);
+          }}
+        >
           Post a Reply
         </Button>
       </div>
@@ -93,7 +108,12 @@ const QuestionDetailPage = () => {
             <Col key={reply.id} xs={12}>
               <ReplyComponent
                 reply={reply}
-                onReply={(parentId) => { setSelectedParentReplyId(parentId); setShowReplyModal(true); }}
+                onReply={(parentId) => {
+                  setSelectedParentReplyId(parentId);
+                  setShowReplyModal(true);
+                }}
+                onDelete={reply.userId === user?.id ? handleDeleteReply : undefined}
+                user={user}
               />
             </Col>
           ))}
@@ -103,7 +123,10 @@ const QuestionDetailPage = () => {
       )}
       <CreateReplyModal
         show={showReplyModal}
-        handleClose={() => { setShowReplyModal(false); setSelectedParentReplyId(null); }}
+        handleClose={() => {
+          setShowReplyModal(false);
+          setSelectedParentReplyId(null);
+        }}
         handleCreate={handleReplyCreate}
         questionId={question.id}
         parentReplyId={selectedParentReplyId}
