@@ -9,4 +9,8 @@ router.post('/', authMiddleware, reactionController.addOrUpdateReaction);
 // Endpoint to delete a reaction by its ID
 router.delete('/:id', authMiddleware, reactionController.deleteReaction);
 
+router.get('/user/:replyId', authMiddleware, reactionController.getUserReaction);
+
+router.get('/counts/:replyId', authMiddleware, reactionController.getReactionCounts);
+
 module.exports = router;
