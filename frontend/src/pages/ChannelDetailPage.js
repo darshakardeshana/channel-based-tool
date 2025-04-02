@@ -44,6 +44,15 @@ const ChannelDetailPage = () => {
     }
   };
 
+  const handleDeleteQuestion = async (questionId) => {
+    try {
+      await questionService.deleteQuestion(questionId);
+      const updatedQuestions = await questionService.getQuestionsByChannel(channelId);
+      setQuestions(updatedQuestions);
+    } catch (error) {
+      console.error('Error deleting question:', error);
+    }
+  };
 
   return (
     <Container className="my-5">
@@ -57,7 +66,10 @@ const ChannelDetailPage = () => {
       <Row>
         {questions.map((question) => (
           <Col key={question.id} md={6} className="mb-3">
-            <QuestionCard question={question} />
+            <QuestionCard
+              question={question}
+              onDelete={question.userId === user?.id ? () => handleDeleteQuestion(question.id) : undefined}
+            />
           </Col>
         ))}
       </Row>

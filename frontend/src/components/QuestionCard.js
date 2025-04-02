@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
-const QuestionCard = ({ question }) => {
+const QuestionCard = ({ question, onDelete }) => {
   return (
     <Card className="mb-3">
       <Card.Body>
@@ -19,6 +19,11 @@ const QuestionCard = ({ question }) => {
         <Button variant="outline-primary" as={Link} to={`/questions/${question.id}`}>
           View Question
         </Button>
+        {onDelete && (
+          <Button variant="danger" size="sm" onClick={onDelete} style={{ marginLeft: '10px' }}>
+            Delete
+          </Button>
+        )}
       </Card.Body>
     </Card>
   );

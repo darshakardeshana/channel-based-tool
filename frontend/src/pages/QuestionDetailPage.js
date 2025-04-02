@@ -80,8 +80,8 @@ const QuestionDetailPage = () => {
             {question.author && question.author.displayName} • {new Date(question.createdAt).toLocaleString()}
           </Card.Subtitle>
           {question.screenshot && (
-            <Image
-              src={question.screenshot}
+            <img
+              src="../uploads/screenshot-1743610823704.png"
               alt="Question Screenshot"
               fluid
               className="mb-3"
